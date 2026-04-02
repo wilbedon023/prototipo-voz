@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>MiCuaderno - Voz a Texto</title>
     <style>
         * {
@@ -16,54 +16,96 @@
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
         }
 
         .container {
             background: white;
             border-radius: 32px;
-            padding: 40px;
-            max-width: 650px;
+            padding: 24px;
+            max-width: 800px;
             width: 100%;
+            margin: 0 auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             margin-bottom: 8px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
+            text-align: center;
         }
 
         .subtitle {
             color: #666;
-            margin-bottom: 32px;
-            font-size: 0.9rem;
+            margin-bottom: 24px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .resumen-panel {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 24px;
+            color: white;
+        }
+
+        .resumen-stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .stat-value.positive {
+            color: #4ade80;
+        }
+
+        .stat-value.negative {
+            color: #f87171;
+        }
+
+        .mic-section {
+            text-align: center;
+            margin-bottom: 24px;
         }
 
         .mic-button {
             background: linear-gradient(135deg, #667eea, #764ba2);
             border: none;
-            width: 120px;
-            height: 120px;
-            border-radius: 60px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50px;
             cursor: pointer;
-            margin: 20px auto;
+            margin: 0 auto;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .mic-button:hover {
-            transform: scale(1.05);
         }
 
         .mic-button.recording {
@@ -91,11 +133,12 @@
         }
 
         .status {
-            margin: 20px 0;
-            font-size: 0.9rem;
-            padding: 10px;
+            margin: 12px 0;
+            font-size: 0.8rem;
+            padding: 8px;
             border-radius: 20px;
             background: #f0f0f0;
+            display: inline-block;
         }
 
         .status.connected {
@@ -108,52 +151,57 @@
             color: #721c24;
         }
 
-        .result {
+        .transcript-area {
             background: #f8f9fa;
             border-radius: 20px;
-            padding: 24px;
-            margin-top: 20px;
-            text-align: left;
-            border-left: 4px solid #667eea;
+            padding: 16px;
+            margin-bottom: 16px;
         }
 
-        .result-label {
-            font-size: 0.75rem;
+        .transcript-label {
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
             color: #999;
             margin-bottom: 8px;
         }
 
-        .result-text {
-            font-size: 1.2rem;
-            line-height: 1.5;
+        .transcript-text {
+            font-size: 1rem;
+            line-height: 1.4;
             color: #333;
             word-wrap: break-word;
-            min-height: 60px;
+            min-height: 50px;
         }
 
-        .placeholder {
-            color: #bbb;
-            font-style: italic;
+        .edit-area {
+            margin-top: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            font-size: 0.9rem;
+            font-family: inherit;
+            resize: vertical;
         }
 
         .button-group {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
-            margin-top: 20px;
             flex-wrap: wrap;
+            margin-bottom: 20px;
         }
 
         button {
-            padding: 12px 24px;
+            padding: 8px 16px;
             border-radius: 40px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             cursor: pointer;
             border: none;
             font-weight: 500;
-            transition: all 0.2s ease;
         }
 
         .btn-primary {
@@ -161,18 +209,9 @@
             color: white;
         }
 
-        .btn-primary:hover {
-            background: #5a67d8;
-            transform: scale(1.02);
-        }
-
         .btn-secondary {
             background: #6c757d;
             color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
         }
 
         .btn-success {
@@ -180,52 +219,105 @@
             color: white;
         }
 
-        .btn-success:hover {
-            background: #218838;
-        }
-
         .btn-warning {
             background: #ffc107;
             color: #333;
-        }
-
-        .btn-warning:hover {
-            background: #e0a800;
-        }
-
-        .edit-area {
-            margin-top: 20px;
-            width: 100%;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 16px;
-            border: 2px solid #e0e0e0;
-            font-size: 1rem;
-            font-family: inherit;
-            resize: vertical;
-            transition: border 0.2s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
         }
 
         .hidden {
             display: none;
         }
 
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 10px;
-            border-radius: 12px;
-            margin-top: 15px;
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: -2px;
+        }
+
+        .transactions-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.85rem;
+        }
+
+        .transaction-item.venta {
+            border-left: 3px solid #28a745;
+        }
+
+        .transaction-item.gasto {
+            border-left: 3px solid #dc3545;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-desc {
+            font-weight: 500;
+        }
+
+        .transaction-date {
+            font-size: 0.7rem;
+            color: #999;
+        }
+
+        .transaction-amount.venta {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .transaction-amount.gasto {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .message-area {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        .toast {
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
             font-size: 0.85rem;
             animation: fadeOut 3s ease forwards;
+        }
+
+        .toast.success {
+            background: #28a745;
+        }
+
+        .toast.error {
+            background: #dc3545;
         }
 
         @keyframes fadeOut {
@@ -248,86 +340,592 @@
 <body>
     <div class="container">
         <h1>🎙️ MiCuaderno</h1>
-        <div class="subtitle">Habla y la app registra tu venta</div>
+        <div class="subtitle">Habla y registra ventas, gastos o abonos</div>
 
-        <div class="mic-button" id="micButton">
-            <div class="mic-icon">🎤</div>
+        <div class="resumen-panel" id="resumenPanel">
+            <div class="resumen-stats">
+                <div class="stat-card">
+                    <div class="stat-label">VENTAS HOY</div>
+                    <div class="stat-value positive" id="ventasHoy">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">GASTOS HOY</div>
+                    <div class="stat-value negative" id="gastosHoy">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">SALDO DÍA</div>
+                    <div class="stat-value" id="saldoHoy">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">CARTERA</div>
+                    <div class="stat-value" id="carteraTotal">$0</div>
+                </div>
+            </div>
         </div>
 
-        <div class="status" id="status">🔴 Desconectado</div>
-
-        <div class="result" id="result">
-            <div class="result-label">📝 TRANSCRIPCIÓN</div>
-            <div class="result-text placeholder" id="transcript">Presiona el micrófono y empieza a hablar...</div>
+        <div class="mic-section">
+            <div class="mic-button" id="micButton">
+                <div class="mic-icon">🎤</div>
+            </div>
+            <div class="status" id="status">🔴 Desconectado</div>
         </div>
 
-        <!-- Área de edición (oculta al inicio) -->
+        <div class="transcript-area">
+            <div class="transcript-label">📝 ÚLTIMA TRANSCRIPCIÓN</div>
+            <div class="transcript-text placeholder" id="transcript">Presiona el micrófono y habla...</div>
+        </div>
+
         <div class="edit-area hidden" id="editArea">
-            <textarea id="editTextarea" rows="3" placeholder="Corrige el texto aquí..."></textarea>
+            <textarea id="editTextarea" rows="2" placeholder="Corrige el texto aquí..."></textarea>
         </div>
 
         <div class="button-group">
             <button id="clearBtn" class="btn-secondary">🗑️ Limpiar</button>
             <button id="editBtn" class="btn-warning">✏️ Editar</button>
-            <button id="saveEditBtn" class="btn-success hidden">💾 Guardar cambios</button>
+            <button id="saveEditBtn" class="btn-success hidden">💾 Guardar</button>
             <button id="cancelEditBtn" class="btn-secondary hidden">❌ Cancelar</button>
+            <button id="verDatosBtn" class="btn-secondary">📊 Ver datos</button>
         </div>
 
-        <div id="messageArea"></div>
+        <div class="tabs">
+            <button class="tab active" data-tab="ventas">📋 Ventas</button>
+            <button class="tab" data-tab="abonos">💰 Abonos</button>
+            <button class="tab" data-tab="gastos">💸 Gastos</button>
+            <button class="tab" data-tab="clientes">👥 Clientes</button>
+        </div>
+
+        <div id="ventasList" class="transactions-list"></div>
+        <div id="abonosList" class="transactions-list hidden"></div>
+        <div id="gastosList" class="transactions-list hidden"></div>
+        <div id="clientesList" class="transactions-list hidden"></div>
     </div>
 
-    <script>
-        // ============================================================
-        // 1. CONFIGURACIÓN - REEMPLAZA TU API KEY AQUÍ
-        // ============================================================
-        const DEEPGRAM_API_KEY = '5d522463b9d666c6578064a303f5f0398c9fe568';  // ⚠️ REEMPLAZA ESTO
+    <div class="message-area" id="messageArea"></div>
 
-        // ============================================================
-        // 2. ELEMENTOS DEL DOM
-        // ============================================================
+    <script>
+        const DEEPGRAM_API_KEY = '5d522463b9d666c6578064a303f5f0398c9fe568';
+
+        let negocioData = {
+            ventas: [],
+            gastos: [],
+            clientes: [],
+            productos: [
+                { nombre: "champú", precio: 15000, keywords: ["champú", "shampoo", "champu"] },
+                { nombre: "jabón", precio: 5000, keywords: ["jabón", "jabon"] },
+                { nombre: "crema", precio: 25000, keywords: ["crema", "crema corporal"] },
+                { nombre: "hamburguesa", precio: 12000, keywords: ["hamburguesa", "burger"] },
+                { nombre: "hamburguesa doble", precio: 18000, keywords: ["doble carne"] },
+                { nombre: "papas", precio: 8000, keywords: ["papas", "papas fritas"] },
+                { nombre: "gaseosa", precio: 5000, keywords: ["gaseosa", "coca", "cola"] },
+                { nombre: "americano", precio: 8000, keywords: ["americano", "café americano"] },
+                { nombre: "frapuchinno", precio: 18000, keywords: ["frapuchinno", "frapuccino", "frappuccino"] }
+            ]
+        };
+
+        function cargarDatos() {
+            const guardado = localStorage.getItem('micuaderno_datos');
+            if (guardado) {
+                const datos = JSON.parse(guardado);
+                negocioData.ventas = datos.ventas || [];
+                negocioData.gastos = datos.gastos || [];
+                negocioData.clientes = datos.clientes || [];
+            }
+            actualizarUI();
+        }
+
+        function guardarDatos() {
+            localStorage.setItem('micuaderno_datos', JSON.stringify({
+                ventas: negocioData.ventas,
+                gastos: negocioData.gastos,
+                clientes: negocioData.clientes
+            }));
+            actualizarUI();
+        }
+
+        function showMessage(text, type = 'success') {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `toast ${type}`;
+            msgDiv.textContent = text;
+            document.getElementById('messageArea').appendChild(msgDiv);
+            setTimeout(() => msgDiv.remove(), 3000);
+        }
+
+        function procesarTexto(texto) {
+            const textoLower = texto.toLowerCase();
+
+            // DETECCIÓN DE TIPO
+            const esGasto = (
+                textoLower.includes("gasto") ||
+                textoLower.includes("compré") ||
+                textoLower.includes("compre") ||
+                textoLower.includes("proveedor") ||
+                textoLower.includes("compra") ||
+                /\bcompr[aei]\s+\d+/.test(textoLower)
+            );
+
+            const esAbono = (
+                textoLower.includes("abono") ||
+                textoLower.includes("pagó") ||
+                textoLower.includes("pago") ||
+                textoLower.includes("abonó") ||
+                textoLower.includes("pagar") ||
+                /\bpag[oó]\s+\d+/.test(textoLower)
+            );
+
+            // ============================================================
+            // CLIENTE - VERSIÓN CORREGIDA
+            // ============================================================
+            let cliente = null;
+
+            // 1. Patrones con prefijo
+            const patronesConPrefijo = [
+                /doña\s+([A-Za-záéíóúñ]+)/i,
+                /don\s+([A-Za-záéíóúñ]+)/i,
+                /señora\s+([A-Za-záéíóúñ]+)/i,
+                /señor\s+([A-Za-záéíóúñ]+)/i,
+                /cliente\s+([A-Za-záéíóúñ]+)/i
+            ];
+
+            for (const patron of patronesConPrefijo) {
+                const match = texto.match(patron);
+                if (match) {
+                    cliente = match[1];
+                    cliente = cliente.charAt(0).toUpperCase() + cliente.slice(1).toLowerCase();
+                    break;
+                }
+            }
+
+            // 2. Para abonos: "X pagó"
+            if (!cliente && esAbono) {
+                const patronPago = /^([A-Za-záéíóúñ]+(?:[\s][A-Za-záéíóúñ]+)?)\s+(?:pag[oó]|abon[oó])/i;
+                const match = texto.match(patronPago);
+                if (match && match[1]) {
+                    let nombrePosible = match[1].trim();
+                    nombrePosible = nombrePosible.replace(/^(doña|don|señora|señor)\s+/i, '');
+                    if (nombrePosible.length >= 3) {
+                        cliente = nombrePosible.charAt(0).toUpperCase() + nombrePosible.slice(1).toLowerCase();
+                    }
+                }
+            }
+
+            // 3. Buscar nombres comunes
+            if (!cliente) {
+                const nombresComunes = [
+                    'maria', 'juan', 'pedro', 'lucia', 'carlos', 'ana', 'luis', 'jose', 'josé',
+                    'martha', 'gloria', 'ricardo', 'andres', 'andrés', 'paula', 'diana', 'fernando',
+                    'sofia', 'sofía', 'javier', 'carmen', 'manuel', 'elena', 'antonio', 'isabel',
+                    'rafael', 'patricia', 'miguel', 'veronica', 'verónica', 'alejandro', 'laura'
+                ];
+
+                for (const nombre of nombresComunes) {
+                    const regex = new RegExp(`\\b${nombre}\\b`, 'i');
+                    if (regex.test(textoLower)) {
+                        cliente = nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
+                        break;
+                    }
+                }
+            }
+
+            // 4. Palabras con mayúscula
+            if (!cliente) {
+                const palabras = texto.match(/\b[A-Z][A-Za-záéíóúñ]{2,}\b/g);
+                if (palabras && palabras.length > 0) {
+                    const excluir = ['Venta', 'Gasto', 'Abono', 'Pago', 'Cliente', 'Proveedor', 'Doña', 'Don'];
+                    for (const palabra of palabras) {
+                        if (!excluir.includes(palabra) && palabra.length >= 3) {
+                            cliente = palabra;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 5. Primera palabra del texto
+            if (!cliente) {
+                const primerasPalabras = texto.match(/^([A-Za-záéíóúñ]{3,})/i);
+                if (primerasPalabras && primerasPalabras[1]) {
+                    const posible = primerasPalabras[1];
+                    if (!['venta', 'gasto', 'abono', 'pago', 'compré', 'compre'].includes(posible.toLowerCase())) {
+                        cliente = posible.charAt(0).toUpperCase() + posible.slice(1).toLowerCase();
+                    }
+                }
+            }
+
+            // Si el "cliente" detectado es una palabra genérica, ignorarla
+            if (cliente && (cliente.toLowerCase() === "cliente" ||
+                cliente.toLowerCase() === "general" ||
+                cliente.toLowerCase() === "venta" ||
+                cliente.toLowerCase() === "pagó" ||
+                cliente.toLowerCase() === "pago")) {
+                cliente = null;
+            }
+
+            // ============================================================
+            // PRODUCTOS
+            // ============================================================
+            const productos = [];
+            for (const producto of negocioData.productos) {
+                for (const kw of producto.keywords) {
+                    const regex = new RegExp(`(\\d+)\\s*${kw}|un\\s+${kw}|una\\s+${kw}|dos\\s+${kw}|tres\\s+${kw}`, 'i');
+                    const match = texto.match(regex);
+                    if (match) {
+                        let cantidad = 1;
+                        if (match[1]) cantidad = parseInt(match[1]);
+                        else if (match[0].includes("dos")) cantidad = 2;
+                        else if (match[0].includes("tres")) cantidad = 3;
+                        productos.push({
+                            nombre: producto.nombre,
+                            cantidad: cantidad,
+                            precio: producto.precio,
+                            total: cantidad * producto.precio
+                        });
+                        break;
+                    }
+                }
+            }
+
+            // ============================================================
+            // MONTO
+            // ============================================================
+            let monto = null;
+            const numerosEncontrados = texto.match(/\d+(?:[.,]\d+)?/g);
+
+            if (numerosEncontrados && numerosEncontrados.length > 0) {
+                for (let numStr of numerosEncontrados) {
+                    let valor = parseInt(numStr.replace(/[.,]/g, ''));
+                    const antesDelNumero = texto.substring(0, texto.indexOf(numStr)).toLowerCase();
+                    const esMontoProbable = (
+                        valor >= 1000 ||
+                        antesDelNumero.includes('mil') ||
+                        antesDelNumero.includes('pesos') ||
+                        antesDelNumero.includes('pagué') ||
+                        antesDelNumero.includes('pago') ||
+                        antesDelNumero.includes('compré') ||
+                        antesDelNumero.includes('gasto')
+                    );
+
+                    if (esMontoProbable) {
+                        if (textoLower.includes('mil') && valor < 1000) {
+                            valor = valor * 1000;
+                        }
+                        monto = valor;
+                        break;
+                    }
+                }
+            }
+
+            // ============================================================
+            // PROVEEDOR
+            // ============================================================
+            let proveedor = null;
+            const patronProveedor = /proveedor\s+([a-záéíóúñ]+)|compr[aei]\s+a\s+([a-záéíóúñ]+)/i;
+            const matchProv = texto.match(patronProveedor);
+            if (matchProv) {
+                proveedor = (matchProv[1] || matchProv[2]);
+                if (proveedor) proveedor = proveedor.charAt(0).toUpperCase() + proveedor.slice(1).toLowerCase();
+            }
+
+            console.log("🔍 [DEBUG] Texto:", texto);
+            console.log("🔍 [DEBUG] esAbono:", esAbono, "esGasto:", esGasto);
+            console.log("🔍 [DEBUG] Cliente detectado:", cliente);
+            console.log("🔍 [DEBUG] Monto detectado:", monto);
+            console.log("🔍 [DEBUG] Productos:", productos);
+
+            return { esGasto, esAbono, cliente, productos, monto, proveedor, textoOriginal: texto };
+        }
+
+        function registrarVenta(info) {
+            // Si no hay productos, error
+            if (!info.productos || info.productos.length === 0) {
+                return { exito: false, mensaje: "No detecté productos. Ej: 'dos champús' o 'María dos champús'" };
+            }
+
+            const total = info.productos.reduce((s, p) => s + p.total, 0);
+
+            // Determinar si es venta a cliente conocido o venta general
+            const tieneCliente = info.cliente && info.cliente !== "General" && info.cliente !== "Cliente";
+            const nombreCliente = tieneCliente ? info.cliente : "Venta general";
+
+            // Registrar la venta
+            const nuevaVenta = {
+                id: Date.now(),
+                fecha: new Date().toISOString(),
+                cliente: nombreCliente,
+                productos: info.productos,
+                total: total,
+                tipo: tieneCliente ? "credito" : "contado",
+                estado: tieneCliente ? "pendiente" : "pagado"
+            };
+
+            negocioData.ventas.unshift(nuevaVenta);
+
+            // Solo actualizar cartera si es un cliente identificado
+            if (tieneCliente) {
+                let clienteExistente = negocioData.clientes.find(c => c.nombre === nombreCliente);
+                if (clienteExistente) {
+                    clienteExistente.deuda = (clienteExistente.deuda || 0) + total;
+                } else {
+                    negocioData.clientes.push({
+                        id: Date.now(),
+                        nombre: nombreCliente,
+                        deuda: total,
+                        historial: []
+                    });
+                }
+                guardarDatos();
+                return { exito: true, mensaje: `✅ Venta a ${nombreCliente}: ${info.productos.map(p => `${p.cantidad} ${p.nombre}`).join(", ")} - $${total.toLocaleString()} (a crédito)` };
+            } else {
+                guardarDatos();
+                return { exito: true, mensaje: `✅ Venta: ${info.productos.map(p => `${p.cantidad} ${p.nombre}`).join(", ")} - $${total.toLocaleString()}` };
+            }
+        }
+
+        function registrarGasto(info) {
+            let total = info.monto;
+            if (!total && info.productos.length > 0) total = info.productos.reduce((s, p) => s + p.total, 0);
+            if (!total) return { exito: false, mensaje: "No detecté el monto. Ej: 'Compré 50 mil en harina'" };
+            negocioData.gastos.unshift({
+                id: Date.now(), fecha: new Date().toISOString(),
+                concepto: info.proveedor ? `Compra a ${info.proveedor}` : "Gasto registrado",
+                total: total, detalle: info.textoOriginal
+            });
+            guardarDatos();
+            return { exito: true, mensaje: `💰 Gasto registrado: $${total.toLocaleString()}` };
+        }
+
+        function registrarAbono(info) {
+            console.log("📝 registrarAbono recibió:", info);
+
+            if (!info.cliente || info.cliente === "General" || info.cliente === "Cliente") {
+                return { exito: false, mensaje: "❌ No detecté el cliente. Ej: 'María pagó 30 mil'" };
+            }
+
+            if (!info.monto) {
+                return { exito: false, mensaje: "❌ No detecté el monto. Ej: 'María pagó 30 mil'" };
+            }
+
+            // Buscar cliente
+            let clienteExistente = negocioData.clientes.find(c => c.nombre === info.cliente);
+            if (!clienteExistente) {
+                clienteExistente = negocioData.clientes.find(c => c.nombre.toLowerCase() === info.cliente.toLowerCase());
+            }
+
+            if (!clienteExistente) {
+                const listaClientes = negocioData.clientes.map(c => c.nombre).join(", ");
+                return {
+                    exito: false,
+                    mensaje: `❌ No encontré al cliente "${info.cliente}". ${listaClientes ? `Clientes: ${listaClientes}` : "Primero registra una venta a ese cliente."}`
+                };
+            }
+
+            const deudaAnterior = clienteExistente.deuda || 0;
+            const nuevoMonto = Math.min(info.monto, deudaAnterior);
+            clienteExistente.deuda = deudaAnterior - nuevoMonto;
+
+            // Registrar el abono como un registro SEPARADO (no mezclado con ventas)
+            negocioData.ventas.push({
+                id: Date.now(),
+                fecha: new Date().toISOString(),
+                cliente: clienteExistente.nombre,
+                tipo: "abono",
+                monto: nuevoMonto,
+                deudaAnterior: deudaAnterior,
+                deudaRestante: clienteExistente.deuda
+            });
+
+            guardarDatos();
+
+            return {
+                exito: true,
+                mensaje: `💰 ${clienteExistente.nombre} pagó $${nuevoMonto.toLocaleString()}. Deuda restante: $${clienteExistente.deuda.toLocaleString()}`
+            };
+        }
+
+        function ejecutarAccion(texto) {
+            const info = procesarTexto(texto);
+            console.log("📝 ejecutarAccion recibió:", info);
+            if (info.esGasto) return registrarGasto(info);
+            if (info.esAbono) return registrarAbono(info);
+            return registrarVenta(info);
+        }
+
+        function actualizarUI() {
+            const hoy = new Date().toDateString();
+
+            // Calcular ventas de hoy (solo productos, no abonos)
+            const ventasHoy = negocioData.ventas
+                .filter(v => new Date(v.fecha).toDateString() === hoy && v.tipo !== "abono" && v.total > 0)
+                .reduce((s, v) => s + (v.total || 0), 0);
+
+            const gastosHoy = negocioData.gastos
+                .filter(g => new Date(g.fecha).toDateString() === hoy)
+                .reduce((s, g) => s + (g.total || 0), 0);
+
+            const carteraTotal = negocioData.clientes.reduce((s, c) => s + (c.deuda || 0), 0);
+
+            document.getElementById('ventasHoy').innerHTML = `$${ventasHoy.toLocaleString()}`;
+            document.getElementById('gastosHoy').innerHTML = `$${gastosHoy.toLocaleString()}`;
+            document.getElementById('saldoHoy').innerHTML = `$${(ventasHoy - gastosHoy).toLocaleString()}`;
+            document.getElementById('carteraTotal').innerHTML = `$${carteraTotal.toLocaleString()}`;
+
+            // ============================================================
+            // VENTAS (solo productos, no abonos)
+            // ============================================================
+            const ventasList = document.getElementById('ventasList');
+            const ventasReales = negocioData.ventas.filter(v => v.tipo !== "abono" && v.total > 0);
+
+            if (ventasReales.length === 0) {
+                ventasList.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">No hay ventas registradas</div>';
+            } else {
+                ventasList.innerHTML = ventasReales.slice(0, 30).map(v => `
+            <div class="transaction-item venta">
+                <div class="transaction-info">
+                    <div class="transaction-desc">${v.cliente || "Venta"}</div>
+                    <div class="transaction-date">${new Date(v.fecha).toLocaleString()}</div>
+                    ${v.productos ? `<div style="font-size:0.7rem;color:#666;">${v.productos.map(p => `${p.cantidad} ${p.nombre}`).join(", ")}</div>` : ''}
+                </div>
+                <div class="transaction-amount venta">$${(v.total || 0).toLocaleString()}</div>
+            </div>
+        `).join('');
+            }
+
+            // ============================================================
+            // ABONOS (pagos recibidos)
+            // ============================================================
+            const abonosList = document.getElementById('abonosList');
+            const abonos = negocioData.ventas.filter(v => v.tipo === "abono" && v.monto > 0);
+
+            if (abonos.length === 0) {
+                abonosList.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">No hay pagos registrados</div>';
+            } else {
+                abonosList.innerHTML = abonos.slice(0, 30).map(a => `
+            <div class="transaction-item" style="border-left-color: #ffc107;">
+                <div class="transaction-info">
+                    <div class="transaction-desc">💰 Pago de ${a.cliente}</div>
+                    <div class="transaction-date">${new Date(a.fecha).toLocaleString()}</div>
+                    ${a.deudaRestante !== undefined ? `<div style="font-size:0.7rem;color:#666;">Deuda restante: $${(a.deudaRestante || 0).toLocaleString()}</div>` : ''}
+                </div>
+                <div class="transaction-amount" style="color: #ffc107; font-weight: bold;">+$${(a.monto || 0).toLocaleString()}</div>
+            </div>
+        `).join('');
+            }
+
+            // ============================================================
+            // GASTOS
+            // ============================================================
+            const gastosList = document.getElementById('gastosList');
+            if (negocioData.gastos.length === 0) {
+                gastosList.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">No hay gastos registrados</div>';
+            } else {
+                gastosList.innerHTML = negocioData.gastos.slice(0, 30).map(g => `
+            <div class="transaction-item gasto">
+                <div class="transaction-info">
+                    <div class="transaction-desc">${g.concepto}</div>
+                    <div class="transaction-date">${new Date(g.fecha).toLocaleString()}</div>
+                </div>
+                <div class="transaction-amount gasto">-$${g.total.toLocaleString()}</div>
+            </div>
+        `).join('');
+            }
+
+            // ============================================================
+            // CLIENTES
+            // ============================================================
+            const clientesList = document.getElementById('clientesList');
+            const clientesConDeuda = negocioData.clientes.filter(c => c.deuda > 0);
+
+            if (clientesConDeuda.length === 0) {
+                clientesList.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">No hay clientes con deuda</div>';
+            } else {
+                clientesList.innerHTML = clientesConDeuda.map(c => `
+            <div class="transaction-item">
+                <div class="transaction-info">
+                    <div class="transaction-desc">${c.nombre}</div>
+                </div>
+                <div class="transaction-amount" style="color: #dc3545;">Debe: $${(c.deuda || 0).toLocaleString()}</div>
+            </div>
+        `).join('');
+            }
+        }
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const tabId = tab.dataset.tab;
+                document.getElementById('ventasList').classList.add('hidden');
+                document.getElementById('abonosList').classList.add('hidden');
+                document.getElementById('gastosList').classList.add('hidden');
+                document.getElementById('clientesList').classList.add('hidden');
+                document.getElementById(`${tabId}List`).classList.remove('hidden');
+            });
+        });
+
+        document.getElementById('verDatosBtn')?.addEventListener('click', () => {
+            const datos = localStorage.getItem('micuaderno_datos');
+            if (datos) {
+                const parsed = JSON.parse(datos);
+                alert(`📊 DATOS GUARDADOS:\nVentas: ${parsed.ventas?.length || 0}\nGastos: ${parsed.gastos?.length || 0}\nClientes: ${parsed.clientes?.length || 0}`);
+            } else alert('No hay datos guardados');
+        });
+
+        let mediaRecorder, socket, isRecording = false, stream;
         const micButton = document.getElementById('micButton');
         const statusDiv = document.getElementById('status');
         const transcriptDiv = document.getElementById('transcript');
-        const clearBtn = document.getElementById('clearBtn');
+
+        function connectDeepgram() {
+            const url = `wss://api.deepgram.com/v1/listen?model=nova-2&language=es&interim_results=true&smart_format=true&punctuate=true`;
+            socket = new WebSocket(url, ['token', DEEPGRAM_API_KEY]);
+            socket.onopen = () => { statusDiv.textContent = '🟢 Conectado - Habla ahora'; statusDiv.classList.add('connected'); startRecording(); };
+            socket.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+                const transcript = data.channel?.alternatives[0]?.transcript;
+                if (transcript) {
+                    transcriptDiv.textContent = transcript;
+                    transcriptDiv.classList.remove('placeholder');
+                    if (data.is_final && transcript.trim()) {
+                        const resultado = ejecutarAccion(transcript);
+                        showMessage(resultado.mensaje, resultado.exito ? 'success' : 'error');
+                    }
+                }
+            };
+            socket.onerror = () => { statusDiv.textContent = '❌ Error'; statusDiv.classList.add('error'); };
+            socket.onclose = () => { if (isRecording) setTimeout(connectDeepgram, 2000); };
+        }
+
+        async function startRecording() {
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0 && socket?.readyState === WebSocket.OPEN) socket.send(e.data); };
+            mediaRecorder.start(250);
+            isRecording = true;
+            micButton.classList.add('recording');
+        }
+
+        function stopRecording() {
+            mediaRecorder?.stop();
+            stream?.getTracks().forEach(t => t.stop());
+            socket?.close();
+            isRecording = false;
+            micButton.classList.remove('recording');
+            statusDiv.textContent = '🔴 Desconectado';
+            statusDiv.classList.remove('connected');
+        }
+
+        micButton.addEventListener('click', () => isRecording ? stopRecording() : connectDeepgram());
+        document.getElementById('clearBtn').addEventListener('click', () => { transcriptDiv.textContent = 'Presiona el micrófono y habla...'; transcriptDiv.classList.add('placeholder'); });
+
+        let isEditMode = false;
         const editBtn = document.getElementById('editBtn');
         const saveEditBtn = document.getElementById('saveEditBtn');
         const cancelEditBtn = document.getElementById('cancelEditBtn');
         const editArea = document.getElementById('editArea');
         const editTextarea = document.getElementById('editTextarea');
-        const messageArea = document.getElementById('messageArea');
 
-        // ============================================================
-        // 3. VARIABLES DE ESTADO
-        // ============================================================
-        let mediaRecorder = null;
-        let socket = null;
-        let isRecording = false;
-        let stream = null;
-        let isEditMode = false;
-
-        // ============================================================
-        // 4. FUNCIONES DE UTILIDAD
-        // ============================================================
-        function showMessage(text, type = 'success') {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'success-message';
-            messageDiv.style.background = type === 'success' ? '#d4edda' : '#f8d7da';
-            messageDiv.style.color = type === 'success' ? '#155724' : '#721c24';
-            messageDiv.textContent = text;
-            messageArea.appendChild(messageDiv);
-
-            setTimeout(() => {
-                messageDiv.remove();
-            }, 3000);
-        }
-
-        function enterEditMode() {
+        editBtn.addEventListener('click', () => {
             const currentText = transcriptDiv.textContent;
-            if (currentText === 'Presiona el micrófono y empieza a hablar...' || currentText === '') {
-                showMessage('No hay texto para editar', 'error');
-                return;
-            }
-
+            if (currentText === 'Presiona el micrófono y habla...') { showMessage('No hay texto para editar', 'error'); return; }
             isEditMode = true;
             editTextarea.value = currentText;
             editArea.classList.remove('hidden');
@@ -335,164 +933,31 @@
             saveEditBtn.classList.remove('hidden');
             cancelEditBtn.classList.remove('hidden');
             transcriptDiv.classList.add('hidden');
-        }
+        });
 
-        function exitEditMode(save = false) {
-            if (save && editTextarea.value.trim() !== '') {
-                transcriptDiv.textContent = editTextarea.value.trim();
-                transcriptDiv.classList.remove('placeholder');
-                showMessage('✅ Texto guardado correctamente');
-            }
-
+        saveEditBtn.addEventListener('click', () => {
+            transcriptDiv.textContent = editTextarea.value;
+            transcriptDiv.classList.remove('placeholder', 'hidden');
+            editArea.classList.add('hidden');
+            editBtn.classList.remove('hidden');
+            saveEditBtn.classList.add('hidden');
+            cancelEditBtn.classList.add('hidden');
             isEditMode = false;
+            showMessage('Texto guardado');
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
             editArea.classList.add('hidden');
             editBtn.classList.remove('hidden');
             saveEditBtn.classList.add('hidden');
             cancelEditBtn.classList.add('hidden');
             transcriptDiv.classList.remove('hidden');
-        }
-
-        function clearTranscript() {
-            transcriptDiv.textContent = '';
-            transcriptDiv.classList.remove('placeholder');
-            showMessage('🧹 Texto limpiado');
-
-            if (isEditMode) {
-                exitEditMode(false);
-            }
-        }
-
-        // ============================================================
-        // 5. CONEXIÓN A DEEPGRAM (WEBSOCKET)
-        // ============================================================
-        function connectDeepgram() {
-            const deepgramUrl = 'wss://api.deepgram.com/v1/listen?model=nova-2&language=es&interim_results=true&smart_format=true&punctuate=true';
-
-            socket = new WebSocket(deepgramUrl, ['token', DEEPGRAM_API_KEY]);
-
-            socket.onopen = () => {
-                console.log('✅ WebSocket conectado a Deepgram');
-                statusDiv.textContent = '🟢 Conectado - Puedes empezar a hablar';
-                statusDiv.classList.add('connected');
-                statusDiv.classList.remove('error');
-                startRecording();
-            };
-
-            socket.onmessage = (message) => {
-                try {
-                    const data = JSON.parse(message.data);
-                    const transcript = data.channel?.alternatives[0]?.transcript;
-
-                    if (transcript && transcript.trim() !== '') {
-                        if (data.is_final) {
-                            // Resultado final - agregar al texto existente
-                            const currentText = transcriptDiv.textContent;
-                            const isPlaceholder = transcriptDiv.classList.contains('placeholder');
-
-                            if (isPlaceholder) {
-                                transcriptDiv.textContent = transcript;
-                                transcriptDiv.classList.remove('placeholder');
-                            } else {
-                                transcriptDiv.textContent = currentText ? currentText + ' ' + transcript : transcript;
-                            }
-                            statusDiv.textContent = '🟢 Conectado - Escuchando';
-                        } else {
-                            // Resultado provisional
-                            statusDiv.textContent = '🎙️ Escuchando... ' + transcript;
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error parseando mensaje:', e);
-                }
-            };
-
-            socket.onerror = (error) => {
-                console.error('❌ Error WebSocket:', error);
-                statusDiv.textContent = '❌ Error de conexión con Deepgram';
-                statusDiv.classList.remove('connected');
-                statusDiv.classList.add('error');
-            };
-
-            socket.onclose = () => {
-                console.log('🔌 WebSocket cerrado');
-                if (isRecording) {
-                    statusDiv.textContent = '⚠️ Desconectado - Reintentando...';
-                    statusDiv.classList.remove('connected');
-                    setTimeout(connectDeepgram, 2000);
-                }
-            };
-        }
-
-        // ============================================================
-        // 6. GRABACIÓN DE MICRÓFONO
-        // ============================================================
-        async function startRecording() {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-                mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'audio/webm'
-                });
-
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0 && socket && socket.readyState === WebSocket.OPEN) {
-                        socket.send(event.data);
-                    }
-                };
-
-                mediaRecorder.start(250);
-                isRecording = true;
-                micButton.classList.add('recording');
-                console.log('🎙️ Grabando...');
-
-            } catch (error) {
-                console.error('Error al acceder al micrófono:', error);
-                statusDiv.textContent = '❌ Error: Permiso de micrófono denegado';
-                statusDiv.classList.add('error');
-            }
-        }
-
-        function stopRecording() {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-            }
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.close();
-            }
-            isRecording = false;
-            micButton.classList.remove('recording');
-            statusDiv.textContent = '🔴 Desconectado';
-            statusDiv.classList.remove('connected');
-            statusDiv.classList.remove('error');
-        }
-
-        // ============================================================
-        // 7. EVENT LISTENERS
-        // ============================================================
-        micButton.addEventListener('click', () => {
-            if (isRecording) {
-                stopRecording();
-            } else {
-                connectDeepgram();
-            }
+            isEditMode = false;
         });
 
-        clearBtn.addEventListener('click', clearTranscript);
-        editBtn.addEventListener('click', enterEditMode);
-        saveEditBtn.addEventListener('click', () => exitEditMode(true));
-        cancelEditBtn.addEventListener('click', () => exitEditMode(false));
-
-        // ============================================================
-        // 8. INICIALIZACIÓN
-        // ============================================================
-        console.log('🚀 App lista. Haz clic en el micrófono para empezar');
-
+        cargarDatos();
         if (DEEPGRAM_API_KEY === 'TU_API_KEY_AQUI') {
-            console.warn('⚠️ Recuerda reemplazar TU_API_KEY_AQUI con tu API key de Deepgram');
-            statusDiv.textContent = '⚠️ Configura tu API Key de Deepgram';
+            statusDiv.textContent = '⚠️ Configura tu API Key';
             statusDiv.classList.add('error');
         }
     </script>
