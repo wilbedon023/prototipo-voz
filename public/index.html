@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiCuaderno - Voz a Texto</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 32px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 32px;
+            font-size: 1rem;
+        }
+
+        .mic-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            width: 120px;
+            height: 120px;
+            border-radius: 60px;
+            cursor: pointer;
+            margin: 20px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mic-button:hover {
+            transform: scale(1.05);
+        }
+
+        .mic-button.recording {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .mic-icon {
+            font-size: 48px;
+            color: white;
+        }
+
+        .status {
+            margin: 20px 0;
+            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 20px;
+            background: #f0f0f0;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 30px;
+            text-align: left;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .result-text {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            color: #333;
+            word-wrap: break-word;
+            min-height: 60px;
+        }
+
+        .placeholder {
+            color: #bbb;
+            font-style: italic;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        .error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .error-text {
+            color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎙️ MiCuaderno</h1>
+        <div class="subtitle">Habla y la app registra tu venta</div>
+
+        <div class="mic-button" id="micButton">
+            <div class="mic-icon">🎤</div>
+        </div>
+
+        <div class="status" id="status">🔴 Desconectado</div>
+
+        <div class="result" id="result">
+            <div class="result-label">📝 TRANSCRIPCIÓN EN VIVO</div>
+            <div class="result-text placeholder" id="transcript">Presiona el micrófono y empieza a hablar...</div>
+        </div>
+
+        <button id="clearBtn">🗑️ Limpiar</button>
+    </div>
+
+    <script>
+        // Elementos del DOM
+        const micButton = document.getElementById('micButton');
+        const statusDiv = document.getElementById('status');
+        const transcriptDiv = document.getElementById('transcript');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // Variables de estado
+        let mediaRecorder = null;
+        let socket = null;
+        let isRecording = false;
+        let stream = null;
+
+        // Tu API Key de Deepgram
+        const DEEPGRAM_API_KEY = '5d522463b9d666c6578064a303f5f0398c9fe568';  // ⚠️ REEMPLAZA ESTO
+
+        // Limpiar texto
+        clearBtn.addEventListener('click', () => {
+            transcriptDiv.textContent = '';
+            transcriptDiv.className = 'result-text';
+        });
+
+        // Conectar a Deepgram vía WebSocket
+        function connectDeepgram() {
+            const deepgramUrl = 'wss://api.deepgram.com/v1/listen?model=nova-2&language=es&interim_results=true&smart_format=true&punctuate=true';
+
+            socket = new WebSocket(deepgramUrl, ['token', DEEPGRAM_API_KEY]);
+
+            socket.onopen = () => {
+                console.log('✅ WebSocket conectado a Deepgram');
+                statusDiv.textContent = '🟢 Conectado - Puedes empezar a hablar';
+                statusDiv.classList.add('connected');
+
+                // Iniciar grabación inmediatamente después de conectar
+                startRecording();
+            };
+
+            socket.onmessage = (message) => {
+                const data = JSON.parse(message.data);
+                const transcript = data.channel?.alternatives[0]?.transcript;
+
+                if (transcript && transcript.trim() !== '') {
+                    // Mostrar resultados en tiempo real
+                    if (data.is_final) {
+                        // Resultado final de una frase
+                        const currentText = transcriptDiv.textContent;
+                        const newText = currentText ? currentText + ' ' + transcript : transcript;
+                        transcriptDiv.textContent = newText;
+                        transcriptDiv.className = 'result-text';
+                    } else {
+                        // Resultado provisional (mientras hablas)
+                        statusDiv.textContent = '🎙️ Escuchando... ' + transcript;
+                    }
+                }
+
+                if (data.is_final) {
+                    statusDiv.textContent = '🟢 Conectado - Escuchando';
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error('❌ Error WebSocket:', error);
+                statusDiv.textContent = '❌ Error de conexión con Deepgram';
+                statusDiv.classList.remove('connected');
+            };
+
+            socket.onclose = () => {
+                console.log('🔌 WebSocket cerrado');
+                if (isRecording) {
+                    statusDiv.textContent = '⚠️ Desconectado - Reintentando...';
+                    setTimeout(connectDeepgram, 2000);
+                }
+            };
+        }
+
+        // Iniciar grabación del micrófono
+        async function startRecording() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                // Opciones de grabación - usar formato que Deepgram entiende [citation:3]
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'audio/webm'  // Deepgram entiende webm si configuramos bien los parámetros
+                });
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0 && socket && socket.readyState === WebSocket.OPEN) {
+                        socket.send(event.data);
+                    }
+                };
+
+                mediaRecorder.start(250);  // Enviar cada 250ms para baja latencia [citation:8]
+                isRecording = true;
+                micButton.classList.add('recording');
+
+                console.log('🎙️ Grabando...');
+
+            } catch (error) {
+                console.error('Error al acceder al micrófono:', error);
+                statusDiv.textContent = '❌ Error: Permiso de micrófono denegado';
+            }
+        }
+
+        // Detener grabación
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.close();
+            }
+            isRecording = false;
+            micButton.classList.remove('recording');
+            statusDiv.textContent = '🔴 Desconectado';
+            statusDiv.classList.remove('connected');
+        }
+
+        // Toggle grabación
+        micButton.addEventListener('click', () => {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                connectDeepgram();
+            }
+        });
+
+        // Instrucción inicial
+        console.log('🚀 App lista. Haz clic en el micrófono para empezar');
+        console.log('⚠️ Recuerda reemplazar TU_API_KEY_AQUI con tu API key de Deepgram');
+    </script>
+</body>
+
+</html>
