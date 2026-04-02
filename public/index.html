@@ -26,7 +26,7 @@
             background: white;
             border-radius: 32px;
             padding: 40px;
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
@@ -34,7 +34,7 @@
 
         h1 {
             font-size: 2rem;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -44,7 +44,7 @@
         .subtitle {
             color: #666;
             margin-bottom: 32px;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .mic-button {
@@ -103,11 +103,16 @@
             color: #155724;
         }
 
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
         .result {
             background: #f8f9fa;
             border-radius: 20px;
             padding: 24px;
-            margin-top: 30px;
+            margin-top: 20px;
             text-align: left;
             border-left: 4px solid #667eea;
         }
@@ -133,28 +138,109 @@
             font-style: italic;
         }
 
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
         button {
-            background: #667eea;
-            color: white;
-            border: none;
             padding: 12px 24px;
             border-radius: 40px;
             font-size: 0.9rem;
             cursor: pointer;
-            margin-top: 20px;
+            border: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
-        button:hover {
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
             background: #5a67d8;
+            transform: scale(1.02);
         }
 
-        .error {
-            background: #f8d7da;
-            border-left-color: #dc3545;
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
         }
 
-        .error-text {
-            color: #dc3545;
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .edit-area {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 16px;
+            border: 2px solid #e0e0e0;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: border 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            animation: fadeOut 3s ease forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
         }
     </style>
 </head>
@@ -171,36 +257,114 @@
         <div class="status" id="status">🔴 Desconectado</div>
 
         <div class="result" id="result">
-            <div class="result-label">📝 TRANSCRIPCIÓN EN VIVO</div>
+            <div class="result-label">📝 TRANSCRIPCIÓN</div>
             <div class="result-text placeholder" id="transcript">Presiona el micrófono y empieza a hablar...</div>
         </div>
 
-        <button id="clearBtn">🗑️ Limpiar</button>
+        <!-- Área de edición (oculta al inicio) -->
+        <div class="edit-area hidden" id="editArea">
+            <textarea id="editTextarea" rows="3" placeholder="Corrige el texto aquí..."></textarea>
+        </div>
+
+        <div class="button-group">
+            <button id="clearBtn" class="btn-secondary">🗑️ Limpiar</button>
+            <button id="editBtn" class="btn-warning">✏️ Editar</button>
+            <button id="saveEditBtn" class="btn-success hidden">💾 Guardar cambios</button>
+            <button id="cancelEditBtn" class="btn-secondary hidden">❌ Cancelar</button>
+        </div>
+
+        <div id="messageArea"></div>
     </div>
 
     <script>
-        // Elementos del DOM
+        // ============================================================
+        // 1. CONFIGURACIÓN - REEMPLAZA TU API KEY AQUÍ
+        // ============================================================
+        const DEEPGRAM_API_KEY = '5d522463b9d666c6578064a303f5f0398c9fe568';  // ⚠️ REEMPLAZA ESTO
+
+        // ============================================================
+        // 2. ELEMENTOS DEL DOM
+        // ============================================================
         const micButton = document.getElementById('micButton');
         const statusDiv = document.getElementById('status');
         const transcriptDiv = document.getElementById('transcript');
         const clearBtn = document.getElementById('clearBtn');
+        const editBtn = document.getElementById('editBtn');
+        const saveEditBtn = document.getElementById('saveEditBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const editArea = document.getElementById('editArea');
+        const editTextarea = document.getElementById('editTextarea');
+        const messageArea = document.getElementById('messageArea');
 
-        // Variables de estado
+        // ============================================================
+        // 3. VARIABLES DE ESTADO
+        // ============================================================
         let mediaRecorder = null;
         let socket = null;
         let isRecording = false;
         let stream = null;
+        let isEditMode = false;
 
-        // Tu API Key de Deepgram
-        const DEEPGRAM_API_KEY = '5d522463b9d666c6578064a303f5f0398c9fe568';  // ⚠️ REEMPLAZA ESTO
+        // ============================================================
+        // 4. FUNCIONES DE UTILIDAD
+        // ============================================================
+        function showMessage(text, type = 'success') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'success-message';
+            messageDiv.style.background = type === 'success' ? '#d4edda' : '#f8d7da';
+            messageDiv.style.color = type === 'success' ? '#155724' : '#721c24';
+            messageDiv.textContent = text;
+            messageArea.appendChild(messageDiv);
 
-        // Limpiar texto
-        clearBtn.addEventListener('click', () => {
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        function enterEditMode() {
+            const currentText = transcriptDiv.textContent;
+            if (currentText === 'Presiona el micrófono y empieza a hablar...' || currentText === '') {
+                showMessage('No hay texto para editar', 'error');
+                return;
+            }
+
+            isEditMode = true;
+            editTextarea.value = currentText;
+            editArea.classList.remove('hidden');
+            editBtn.classList.add('hidden');
+            saveEditBtn.classList.remove('hidden');
+            cancelEditBtn.classList.remove('hidden');
+            transcriptDiv.classList.add('hidden');
+        }
+
+        function exitEditMode(save = false) {
+            if (save && editTextarea.value.trim() !== '') {
+                transcriptDiv.textContent = editTextarea.value.trim();
+                transcriptDiv.classList.remove('placeholder');
+                showMessage('✅ Texto guardado correctamente');
+            }
+
+            isEditMode = false;
+            editArea.classList.add('hidden');
+            editBtn.classList.remove('hidden');
+            saveEditBtn.classList.add('hidden');
+            cancelEditBtn.classList.add('hidden');
+            transcriptDiv.classList.remove('hidden');
+        }
+
+        function clearTranscript() {
             transcriptDiv.textContent = '';
-            transcriptDiv.className = 'result-text';
-        });
+            transcriptDiv.classList.remove('placeholder');
+            showMessage('🧹 Texto limpiado');
 
-        // Conectar a Deepgram vía WebSocket
+            if (isEditMode) {
+                exitEditMode(false);
+            }
+        }
+
+        // ============================================================
+        // 5. CONEXIÓN A DEEPGRAM (WEBSOCKET)
+        // ============================================================
         function connectDeepgram() {
             const deepgramUrl = 'wss://api.deepgram.com/v1/listen?model=nova-2&language=es&interim_results=true&smart_format=true&punctuate=true';
 
@@ -210,31 +374,35 @@
                 console.log('✅ WebSocket conectado a Deepgram');
                 statusDiv.textContent = '🟢 Conectado - Puedes empezar a hablar';
                 statusDiv.classList.add('connected');
-
-                // Iniciar grabación inmediatamente después de conectar
+                statusDiv.classList.remove('error');
                 startRecording();
             };
 
             socket.onmessage = (message) => {
-                const data = JSON.parse(message.data);
-                const transcript = data.channel?.alternatives[0]?.transcript;
+                try {
+                    const data = JSON.parse(message.data);
+                    const transcript = data.channel?.alternatives[0]?.transcript;
 
-                if (transcript && transcript.trim() !== '') {
-                    // Mostrar resultados en tiempo real
-                    if (data.is_final) {
-                        // Resultado final de una frase
-                        const currentText = transcriptDiv.textContent;
-                        const newText = currentText ? currentText + ' ' + transcript : transcript;
-                        transcriptDiv.textContent = newText;
-                        transcriptDiv.className = 'result-text';
-                    } else {
-                        // Resultado provisional (mientras hablas)
-                        statusDiv.textContent = '🎙️ Escuchando... ' + transcript;
+                    if (transcript && transcript.trim() !== '') {
+                        if (data.is_final) {
+                            // Resultado final - agregar al texto existente
+                            const currentText = transcriptDiv.textContent;
+                            const isPlaceholder = transcriptDiv.classList.contains('placeholder');
+
+                            if (isPlaceholder) {
+                                transcriptDiv.textContent = transcript;
+                                transcriptDiv.classList.remove('placeholder');
+                            } else {
+                                transcriptDiv.textContent = currentText ? currentText + ' ' + transcript : transcript;
+                            }
+                            statusDiv.textContent = '🟢 Conectado - Escuchando';
+                        } else {
+                            // Resultado provisional
+                            statusDiv.textContent = '🎙️ Escuchando... ' + transcript;
+                        }
                     }
-                }
-
-                if (data.is_final) {
-                    statusDiv.textContent = '🟢 Conectado - Escuchando';
+                } catch (e) {
+                    console.error('Error parseando mensaje:', e);
                 }
             };
 
@@ -242,25 +410,28 @@
                 console.error('❌ Error WebSocket:', error);
                 statusDiv.textContent = '❌ Error de conexión con Deepgram';
                 statusDiv.classList.remove('connected');
+                statusDiv.classList.add('error');
             };
 
             socket.onclose = () => {
                 console.log('🔌 WebSocket cerrado');
                 if (isRecording) {
                     statusDiv.textContent = '⚠️ Desconectado - Reintentando...';
+                    statusDiv.classList.remove('connected');
                     setTimeout(connectDeepgram, 2000);
                 }
             };
         }
 
-        // Iniciar grabación del micrófono
+        // ============================================================
+        // 6. GRABACIÓN DE MICRÓFONO
+        // ============================================================
         async function startRecording() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-                // Opciones de grabación - usar formato que Deepgram entiende [citation:3]
                 mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'audio/webm'  // Deepgram entiende webm si configuramos bien los parámetros
+                    mimeType: 'audio/webm'
                 });
 
                 mediaRecorder.ondataavailable = (event) => {
@@ -269,19 +440,18 @@
                     }
                 };
 
-                mediaRecorder.start(250);  // Enviar cada 250ms para baja latencia [citation:8]
+                mediaRecorder.start(250);
                 isRecording = true;
                 micButton.classList.add('recording');
-
                 console.log('🎙️ Grabando...');
 
             } catch (error) {
                 console.error('Error al acceder al micrófono:', error);
                 statusDiv.textContent = '❌ Error: Permiso de micrófono denegado';
+                statusDiv.classList.add('error');
             }
         }
 
-        // Detener grabación
         function stopRecording() {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
@@ -296,9 +466,12 @@
             micButton.classList.remove('recording');
             statusDiv.textContent = '🔴 Desconectado';
             statusDiv.classList.remove('connected');
+            statusDiv.classList.remove('error');
         }
 
-        // Toggle grabación
+        // ============================================================
+        // 7. EVENT LISTENERS
+        // ============================================================
         micButton.addEventListener('click', () => {
             if (isRecording) {
                 stopRecording();
@@ -307,9 +480,21 @@
             }
         });
 
-        // Instrucción inicial
+        clearBtn.addEventListener('click', clearTranscript);
+        editBtn.addEventListener('click', enterEditMode);
+        saveEditBtn.addEventListener('click', () => exitEditMode(true));
+        cancelEditBtn.addEventListener('click', () => exitEditMode(false));
+
+        // ============================================================
+        // 8. INICIALIZACIÓN
+        // ============================================================
         console.log('🚀 App lista. Haz clic en el micrófono para empezar');
-        console.log('⚠️ Recuerda reemplazar TU_API_KEY_AQUI con tu API key de Deepgram');
+
+        if (DEEPGRAM_API_KEY === 'TU_API_KEY_AQUI') {
+            console.warn('⚠️ Recuerda reemplazar TU_API_KEY_AQUI con tu API key de Deepgram');
+            statusDiv.textContent = '⚠️ Configura tu API Key de Deepgram';
+            statusDiv.classList.add('error');
+        }
     </script>
 </body>
 
