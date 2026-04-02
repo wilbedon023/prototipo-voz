@@ -25,7 +25,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
             url: 'https://api.deepgram.com/v1/listen?model=nova-2&language=es', // <--- Línea clave
             headers: {
                 'Authorization': `Token ${process.env.DEEPGRAM_API_KEY}`,
-                'Content-Type': 'audio/wav' // Le decimos que es un archivo WAV
+                'Content-Type': 'audio/wav' // Le decimos que es un archivo WAV solamente
             },
             data: audioData
         });
